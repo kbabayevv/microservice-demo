@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2024-05-22-02
+      author: kbabayevv
+      comment: Add column updatedAt
+      changes:
+        - addColumn:
+            tableName: payments
+            columns:
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false

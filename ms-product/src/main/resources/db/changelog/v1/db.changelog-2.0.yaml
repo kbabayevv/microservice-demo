@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2024-05-22-02
+      author: kbabayevv
+      comment: Add columns updatedAt and createdAt
+      changes:
+        - addColumn:
+            tableName: products
+            columns:
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false

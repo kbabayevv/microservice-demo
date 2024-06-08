@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: configserver:http://localhost:8888
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: ms-product
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:9999}
+          predicates:
+            - Path=/products/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: productServiceCircuitBreaker
+                fallbackUri: forward:/fallback/productServiceFallBack
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+            - RewritePath=/products/?(?<segment>.*), /${segment}
+
+        - id: ms-order
+          uri: ${ORDER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/orders/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: orderServiceCircuitBreaker
+                fallbackUri: forward:/fallback/orderServiceFallBack
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+            - RewritePath=/orders/?(?<segment>.*), /${segment}
+
+        - id: ms-payment
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/payments/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: paymentServiceCircuitBreaker
+                fallbackUri: forward:/fallback/paymentServiceFallBack
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+            - RewritePath=/payments/?(?<segment>.*), /${segment}
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: ms-product
+        url: http://localhost:9999/v3/api-docs
+      - name: ms-order
+        url: http://localhost:8081/v3/api-docs
+      - name: ms-payment
+        url: http://localhost:8082/v3/api-docs
+
+server:
+  port: 9090
+
+okta:
+  oauth2:
+    issuer: https://dev-08874861.okta.com/oauth2/default
+    client-id: 0oahm2un26emIxxmj5d7
+    client-secret: enxwSySuyKA1EkZQqj1yMvBrrPNMyLMFUFqYNWfvPHYhb3xaR2qrFbN1aAX8aBqu
+    scopes: openid, profile, email, offline_access
